@@ -52,16 +52,21 @@ The UDP payload layout is:
 
 ```
 Offset  Size  Description
-0       4     frame_id (unsigned 32-bit big-endian)
-4       N     RGB data for the run (run_led_count * 3 bytes)
+0       2     session_id (unsigned 16-bit big-endian)
+2       4     frame_id (unsigned 32-bit big-endian)
+6       N     RGB data for the run (run_led_count * 3 bytes)
 ```
 
 - RGB bytes are in physical LED order with one 8-bit value for each of red, green
   and blue.
+- The `session_id` is a randomly generated unsigned 16-bit value when the
+  sender process starts and remains constant for all packets until the process
+  exits.
 - The `frame_id` matches the `frame` value emitted by the renderer and wraps at
   2^32.
 - Controllers should only display a frame after receiving all runs for a side with
-  the same `frame_id`; otherwise the last complete frame should remain visible.
+  the same `session_id` and `frame_id`; otherwise the last complete frame should
+  remain visible.
 
 ### Special Control Frames
 

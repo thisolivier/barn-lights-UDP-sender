@@ -1,4 +1,5 @@
 import dgram from 'dgram';
+import { randomBytes } from 'crypto';
 
 /**
  * UdpSender polls the mailbox for assembled frames and sends them via UDP.
@@ -17,6 +18,7 @@ export class UdpSender {
     this.logger = logger;
     this.sockets = {};
     this.timers = {};
+    this.sessionId = randomBytes(2).readUInt16BE(0);
   }
 
   /** Start polling loops for all configured sides. */
@@ -78,8 +80,9 @@ export class UdpSender {
       return;
     }
     for (const run of frame.runs) {
-      const header = Buffer.alloc(4);
-      header.writeUInt32BE(frame.frame_id >>> 0, 0);
+      const header = Buffer.alloc(6);
+      header.writeUInt16BE(this.sessionId, 0);
+      header.writeUInt32BE(frame.frame_id >>> 0, 2);
       const packet = Buffer.concat([header, run.data]);
       socket.send(
         packet,
