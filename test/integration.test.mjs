@@ -79,13 +79,15 @@ test('udp sender transmits packets for assembled frames', async () => {
   udpServer.close();
 
   assert(receivedPackets.length > 0, 'expected at least one UDP packet');
-  const expectedLength = 4 + leftLayout.runs[0].led_count * 3;
+  const expectedLength = 6 + leftLayout.runs[0].led_count * 3;
   const firstPacket = receivedPackets[0];
   assert.strictEqual(firstPacket.length, expectedLength);
   const expected = decodeSampleFrame(layoutPath, adaptedSamplePath);
-  const frameId = firstPacket.readUInt32BE(0);
+  const sessionId = firstPacket.readUInt16BE(0);
+  assert.strictEqual(sessionId, sender.sessionId, 'session id header mismatch');
+  const frameId = firstPacket.readUInt32BE(2);
   assert.strictEqual(frameId, expected.frameId, 'frame id header mismatch');
-  const rgbPayload = firstPacket.subarray(4);
+  const rgbPayload = firstPacket.subarray(6);
   assert.ok(
     expected.buffer.equals(rgbPayload),
     'RGB payload does not match renderer output',
